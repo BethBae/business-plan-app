@@ -62,19 +62,18 @@
         <h1 class="text-3xl font-extrabold text-gray-900 mb-2">💡 사업 계획서 자동 생성기</h1>
         <p class="text-gray-500 mb-8">핵심 정보를 입력하시면, Gemini의 심층 리서치(Google Search 활용)를 통해 상세한 사업 계획서 초안을 생성해 드립니다.</p>
 
-        <!-- API Key Status Notification (Key is now provided by the environment, not user input) -->
-        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-lg shadow-md">
+        <!-- API Key Status Notification (Key is now provided by the user in the script) -->
+        <div id="apiStatusMessage" class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-lg shadow-md">
             <div class="flex items-center">
                 <svg class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
                 <p class="text-sm text-blue-800 font-semibold">
-                    ✨ 바로 시작하세요! (개발자 결제 완료)
+                    ✨ API 키를 입력할 준비가 되었습니다!
                 </p>
             </div>
             <p class="mt-2 text-sm text-blue-700">
-                이 앱은 개발자(@사용자님)가 API 키를 환경에 설정하여 사용자님의 편의를 위해 결제하였습니다. <br>
-                별도의 키 입력 없이 즉시 사업 계획서 작성을 시작할 수 있습니다.
+                스크립트 영역에 발급받으신 키를 입력하시면 즉시 사업 계획서 작성을 시작할 수 있습니다.
             </p>
         </div>
         
@@ -168,9 +167,16 @@
     </div>
 
     <script type="module">
-        // Global variables for API Key
-        // API Key is now retrieved from the environment variable (if provided), allowing the developer to pay.
-        let API_KEY = (typeof __api_key !== 'undefined') ? __api_key : "";
+        // =========================================================================================
+        // ⚠️ 사용자 API 키 입력 섹션: 여기에 발급받으신 Gemini API 키를 큰따옴표 안에 넣어주세요.
+        // 예: const USER_API_KEY = "AIzaSy...your_key_here";
+        // =========================================================================================
+        const USER_API_KEY = "YOUR_API_KEY_HERE"; 
+        
+        // 환경 변수가 제공되는 경우 우선 사용하며, 아닐 경우 사용자 입력 키를 사용합니다.
+        // '__api_key'는 Canvas 환경에서 자동으로 주입되는 변수입니다.
+        let API_KEY = (typeof __api_key !== 'undefined' && __api_key.length > 0) ? __api_key : USER_API_KEY;
+        
         const API_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`;
         const MAX_RETRIES = 5;
         
@@ -180,17 +186,23 @@
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         const buttonText = document.getElementById('buttonText');
         const loadingSpinner = document.getElementById('loadingSpinner');
+        const apiStatusMessageDiv = document.getElementById('apiStatusMessage');
 
         // Initial setup for the app state
         function initializeApp() {
-            if (API_KEY) {
-                // Key is present (provided by the environment) -> Enable button and show ready message
+            if (API_KEY && API_KEY !== "YOUR_API_KEY_HERE") {
+                // 키가 유효하게 설정됨 (환경 변수이든, 사용자 입력이든)
                 generateBtn.disabled = false;
                 reportOutput.innerHTML = `<p class="text-gray-600 font-bold">🎉 모든 준비가 완료되었습니다! 필요한 정보를 입력하고 '사업 계획서 생성 시작' 버튼을 눌러주세요.</p>`;
+                apiStatusMessageDiv.className = 'bg-green-50 border-l-4 border-green-400 p-4 mb-8 rounded-lg shadow-md';
+                apiStatusMessageDiv.innerHTML = `<div class="flex items-center"><svg class="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg><p class="text-sm text-green-800 font-semibold">✨ API 키 설정 완료!</p></div><p class="mt-2 text-sm text-green-700">이제 바로 사업 계획서 작성을 시작할 수 있습니다.</p>`;
+
             } else {
-                // Key is missing in the environment -> Disable button and show error
+                // 키가 누락되었거나 기본 Placeholder 문자열임
                 generateBtn.disabled = true;
-                reportOutput.innerHTML = `<p class="text-red-500 font-bold">⚠️ API 키가 환경에 설정되지 않았습니다. 개발자에게 문의하세요.</p>`;
+                reportOutput.innerHTML = `<p class="text-red-500 font-bold">⚠️ API 키가 코드에 설정되지 않았습니다. 위의 스크립트 섹션에서 키를 입력해 주세요.</p>`;
+                apiStatusMessageDiv.className = 'bg-red-50 border-l-4 border-red-400 p-4 mb-8 rounded-lg shadow-md';
+                 apiStatusMessageDiv.innerHTML = `<div class="flex items-center"><svg class="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.3 16c-.77 1.333.192 3 1.732 3z" /></svg><p class="text-sm text-red-800 font-semibold">❌ API 키 입력 필요!</p></div><p class="mt-2 text-sm text-red-700">코드를 편집하여 **USER_API_KEY** 변수에 발급받은 키를 입력해 주세요.</p>`;
             }
         }
 
@@ -206,8 +218,8 @@
         };
 
         async function fetchWithRetry(payload) {
-            if (!API_KEY) {
-                reportOutput.innerHTML = '<p class="text-red-600 font-bold">❌ API 키가 설정되지 않아 생성을 시작할 수 없습니다. 개발자에게 문의하세요.</p>';
+            if (!API_KEY || API_KEY === "YOUR_API_KEY_HERE") {
+                reportOutput.innerHTML = '<p class="text-red-600 font-bold">❌ API 키가 설정되지 않아 생성을 시작할 수 없습니다. 스크립트 섹션에 키를 입력해 주세요.</p>';
                 return null;
             }
 
@@ -225,7 +237,7 @@
                         return await response.json();
                     } else if (response.status === 401) {
                          // Unauthorized - likely bad key
-                        reportOutput.innerHTML = `<p class="text-red-600">오류 발생: API 키가 유효하지 않거나 만료되었습니다. 개발자에게 문의하세요. (상태 코드: ${response.status})</p>`;
+                        reportOutput.innerHTML = `<p class="text-red-600">오류 발생: API 키가 유효하지 않거나 만료되었습니다. 키를 확인해 주세요. (상태 코드: ${response.status})</p>`;
                         return null;
                     } else if (response.status === 429 || response.status >= 500) {
                         // Rate limit or server error: retry
@@ -258,8 +270,9 @@
         async function generateBusinessPlan(event) {
             event.preventDefault();
             
-            if (!API_KEY) {
-                alert("API 키가 설정되지 않아 생성을 시작할 수 없습니다. 개발자에게 문의하세요.");
+            if (!API_KEY || API_KEY === "AIzaSyCF97FLOy-6bA2Qw9K_a5fKaqkjq_nN8BE") {
+                // Using custom modal instead of alert()
+                reportOutput.innerHTML = `<p class="text-red-600 font-bold">❌ API 키가 설정되지 않아 생성을 시작할 수 없습니다. 스크립트 섹션에 키를 입력해 주세요.</p>`;
                 return;
             }
 
@@ -324,46 +337,34 @@
             // 5. Process and Display Result
             if (result && result.candidates && result.candidates.length > 0) {
                 const candidate = result.candidates[0];
-                const generatedText = candidate.content?.parts?.[0]?.text || "보고서 생성에 실패했습니다.";
-                
-                // Convert Markdown to HTML
-                let htmlContent = renderMarkdown(generatedText);
+                const generatedText = candidate.content?.parts?.[0]?.text || '내용 생성에 실패했습니다.';
 
-                // Extract and format citations (sources)
-                const groundingMetadata = candidate.groundingMetadata;
                 let sourcesHtml = '';
+                const groundingMetadata = candidate.groundingMetadata;
                 if (groundingMetadata && groundingMetadata.groundingAttributions) {
                     const sources = groundingMetadata.groundingAttributions
                         .map(attribution => ({
                             uri: attribution.web?.uri,
                             title: attribution.web?.title,
                         }))
-                        .filter(source => source.uri && source.title); // Only include sources with URI and Title
+                        .filter(source => source.uri && source.title);
 
                     if (sources.length > 0) {
-                        const uniqueSources = Array.from(new Set(sources.map(s => s.uri)))
-                            .map(uri => sources.find(s => s.uri === uri));
-
-                        sourcesHtml = `<div class="citation">
-                            <h3 class="font-bold text-sm text-gray-700 mb-2 mt-4">심층 리서치 참고 자료 (근거)</h3>
-                            <ul class="list-disc list-inside space-y-1 text-xs">`;
-                        
-                        uniqueSources.forEach((source, index) => {
-                            sourcesHtml += `<li><a href="${source.uri}" target="_blank" class="text-blue-500 hover:underline">${source.title || source.uri}</a></li>`;
+                        sourcesHtml = '<div class="citation"><strong>🔗 참고 자료 (Google Search):</strong><ul class="list-disc ml-4 mt-2">';
+                        sources.forEach(source => {
+                            sourcesHtml += `<li><a href="${source.uri}" target="_blank" class="text-blue-600 hover:underline text-sm">${source.title}</a></li>`;
                         });
-                        
-                        sourcesHtml += `</ul></div>`;
+                        sourcesHtml += '</ul></div>';
                     }
                 }
-
-                // Update output area
-                reportOutput.innerHTML = htmlContent + sourcesHtml;
-
-                // Enable PDF download
+                
+                reportOutput.innerHTML = renderMarkdown(generatedText) + sourcesHtml;
                 downloadPdfBtn.disabled = false;
-
-            } else if (result !== null) {
-                reportOutput.innerHTML = `<p class="text-red-600">보고서를 가져오는 데 문제가 발생했습니다. API 응답이 유효하지 않습니다.</p>`;
+            } else {
+                if (!reportOutput.innerHTML.includes("오류 발생:")) {
+                   reportOutput.innerHTML = `<p class="text-red-600 font-bold">❌ 결과 생성에 실패했습니다. API 키가 정확한지 확인하거나 잠시 후 다시 시도해 주세요.</p>`;
+                }
+                downloadPdfBtn.disabled = true;
             }
 
             // 6. Reset UI
@@ -372,42 +373,24 @@
             loadingSpinner.classList.add('hidden');
         }
 
-        /**
-         * Converts the generated report HTML into a PDF and downloads it.
-         */
         function downloadPdf() {
-             const teamName = document.getElementById('teamName').value || '미정';
-             const date = new Date().toISOString().slice(0, 10);
-             const fileName = `사업계획서_${teamName}_${date}.pdf`;
-             const reportOutputContent = document.getElementById('reportOutput').innerHTML;
-             
-             // 1. Create a temporary element to hold the content for PDF conversion
-             const pdfContent = document.createElement('div');
-             pdfContent.innerHTML = reportOutputContent;
-             pdfContent.style.width = '210mm'; 
-             pdfContent.style.padding = '10mm';
-
-             document.body.appendChild(pdfContent);
-
-             // 2. Start the PDF generation
-             const config = {
-                margin: 10,
-                filename: fileName,
+            const element = document.getElementById('reportOutput');
+            const teamName = document.getElementById('teamName').value || 'BusinessPlan';
+            
+            const opt = {
+                margin: 1,
+                filename: `${teamName}_사업계획서.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'cm', format: 'a4', orientation: 'portrait' }
             };
 
-             html2pdf().from(pdfContent).set(config).save().finally(() => {
-                 // 3. Clean up the temporary element
-                 document.body.removeChild(pdfContent);
-             });
+            // Use the markdown content directly for better PDF rendering
+            html2pdf().set(opt).from(element).save();
         }
 
-        // Event Listeners
         form.addEventListener('submit', generateBusinessPlan);
         downloadPdfBtn.addEventListener('click', downloadPdf);
-        
     </script>
 </body>
 </html>
