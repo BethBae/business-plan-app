@@ -3,699 +3,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>선일다이파스 2026 사업계획서 자동생성기</title>
+    <title>사업계획서 자동 생성기 (Gemini Powered)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2pdf CDN for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Marked.js CDN for Markdown to HTML conversion -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        /* Custom styles for the generated content area */
+        #reportOutput {
+            min-height: 400px;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            line-height: 1.6;
+        }
+        /* Style the Markdown output */
+        #reportOutput h1 { font-size: 2em; margin-top: 1.5em; margin-bottom: 0.5em; font-weight: 700; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5em; }
+        #reportOutput h2 { font-size: 1.5em; margin-top: 1.25em; margin-bottom: 0.5em; font-weight: 600; color: #1e3a8a; }
+        #reportOutput h3 { font-size: 1.25em; margin-top: 1em; margin-bottom: 0.5em; font-weight: 600; color: #3b82f6; }
+        #reportOutput p { margin-bottom: 1em; }
+        #reportOutput ul, #reportOutput ol { margin-left: 1.5em; margin-bottom: 1em; list-style-type: disc; }
+        #reportOutput li { margin-bottom: 0.5em; }
+
+        .citation {
+            font-size: 0.8rem;
+            color: #4b5563;
+            margin-top: 1em;
+            border-top: 1px dashed #e5e7eb;
+            padding-top: 0.5rem;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1a5490 0%, #2c5aa0 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .content {
-            padding: 40px;
-        }
-
-        .step {
-            margin-bottom: 40px;
-            padding: 30px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
-        }
-
-        .step-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .step-number {
-            background: #667eea;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            margin-right: 15px;
-        }
-
-        .step-title {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        label .required {
-            color: #e74c3c;
-            margin-left: 5px;
-        }
-
-        .help-text {
-            font-size: 13px;
-            color: #666;
-            margin-top: 5px;
-            font-style: italic;
-        }
-
-        input[type="text"],
-        textarea,
-        select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        input[type="text"]:focus,
-        textarea:focus,
-        select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .radio-option:hover {
-            background: #f8f9fa;
-            border-color: #667eea;
-        }
-
-        .radio-option input[type="radio"] {
-            margin-right: 10px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .radio-option.selected {
-            background: #f0f3ff;
-            border-color: #667eea;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
+        /* Loading indicator styling */
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            border-top-color: #ffffff;
+            width: 1.5rem;
+            height: 1.5rem;
+            animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .loading-detail {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 20px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            width: 0%;
-            transition: width 0.3s;
-        }
-
-        .result {
-            display: none;
-        }
-
-        .result.active {
-            display: block;
-        }
-
-        .result-content {
-            line-height: 1.8;
-            color: #333;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #e0e0e0;
-        }
-
-        .info-box {
-            background: #e8f4fd;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-
-        .info-box p {
-            margin: 5px 0;
-            color: #1976D2;
-        }
-
-        @media (max-width: 768px) {
-            .button-group,
-            .result-actions {
-                flex-direction: column;
-            }
-
-            .header h1 {
-                font-size: 24px;
-            }
-
-            .content {
-                padding: 20px;
-            }
-
-            .step {
-                padding: 20px;
-            }
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>✨ 선일다이파스 2026 사업계획서 자동생성기</h1>
-            <p>AI가 전문 컨설턴트 수준의 사업계획서를 자동으로 작성해드립니다</p>
-        </div>
+<body class="p-4 sm:p-8">
 
-        <!-- 폼 섹션 -->
-        <div id="formSection" class="content">
-            <div class="info-box">
-                <p><strong>🎉 이제 API 키 없이 바로 사용하실 수 있습니다!</strong></p>
-                <p>모든 API 비용은 서비스에서 부담합니다.</p>
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">💡 사업 계획서 자동 생성기</h1>
+        <p class="text-gray-500 mb-8">핵심 정보를 입력하시면, Gemini의 심층 리서치(Google Search 활용)를 통해 상세한 사업 계획서 초안을 생성해 드립니다.</p>
+
+        <!-- API Key Status Notification (Key is now provided by the environment, not user input) -->
+        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-8 rounded-lg shadow-md">
+            <div class="flex items-center">
+                <svg class="h-6 w-6 text-blue-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <p class="text-sm text-blue-800 font-semibold">
+                    ✨ 바로 시작하세요! (개발자 결제 완료)
+                </p>
+            </div>
+            <p class="mt-2 text-sm text-blue-700">
+                이 앱은 개발자(@사용자님)가 API 키를 환경에 설정하여 사용자님의 편의를 위해 결제하였습니다. <br>
+                별도의 키 입력 없이 즉시 사업 계획서 작성을 시작할 수 있습니다.
+            </p>
+        </div>
+        
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 1. Input Form Area -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg h-fit sticky top-4">
+                <h2 class="text-xl font-semibold mb-4 text-blue-700">필수 입력 정보 (팀장용)</h2>
+                <form id="planForm" class="space-y-4">
+                    
+                    <!-- 1. 사업 계획서 종류 -->
+                    <div>
+                        <label for="planType" class="block text-sm font-medium text-gray-700">1. 사업 계획서 종류</label>
+                        <select id="planType" name="planType" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                            <option value="신규 사업 아이템 기획">신규 사업 아이템 기획</option>
+                            <option value="기존 사업 개선 및 전략">기존 사업 개선 및 전략</option>
+                            <option value="마케팅 및 영업 계획">마케팅 및 영업 계획</option>
+                            <option value="투자 유치용 사업 계획">투자 유치용 사업 계획</option>
+                            <option value="기타">기타 (아래 아이디어에 상세 작성)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. 팀 이름 -->
+                    <div>
+                        <label for="teamName" class="block text-sm font-medium text-gray-700">2. 팀/프로젝트 이름</label>
+                        <input type="text" id="teamName" name="teamName" required placeholder="예: 혁신 기획팀, Project Titan"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    </div>
+
+                    <!-- 3. 목표 및 비전 -->
+                    <div>
+                        <label for="goal" class="block text-sm font-medium text-gray-700">3. 전체 목표 및 비전</label>
+                        <textarea id="goal" name="goal" rows="2" required placeholder="사업을 통해 달성하고자 하는 궁극적인 목표"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+                    </div>
+
+                    <!-- 4. 기간 -->
+                    <div>
+                        <label for="period" class="block text-sm font-medium text-gray-700">4. 계획 기간</label>
+                        <input type="text" id="period" name="period" required placeholder="예: 2025년 4분기 ~ 2026년 3분기 (1년)"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border">
+                    </div>
+
+                    <!-- 5. 주요 과제 및 마일스톤 -->
+                    <div>
+                        <label for="tasks" class="block text-sm font-medium text-gray-700">5. 주요 과제 및 핵심 마일스톤</label>
+                        <textarea id="tasks" name="tasks" rows="3" required placeholder="성공을 위해 반드시 수행해야 할 주요 활동 (3~5가지)"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+                    </div>
+
+                    <!-- 6. 기대 효과 -->
+                    <div>
+                        <label for="expectedEffects" class="block text-sm font-medium text-gray-700">6. 정량적/정성적 기대 효과</label>
+                        <textarea id="expectedEffects" name="expectedEffects" rows="3" required placeholder="매출 증가, 비용 절감, 시장 점유율 확보 등 구체적 기대치"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+                    </div>
+
+                    <!-- 7. 핵심 사업 아이디어 (가장 중요) -->
+                    <div>
+                        <label for="businessIdea" class="block text-sm font-bold text-gray-900">7. 핵심 사업 아이디어 및 상세 설명</label>
+                        <textarea id="businessIdea" name="businessIdea" rows="5" required placeholder="아이디어의 배경, 대상 고객, 제공 가치 등을 상세히 설명해 주세요. (심층 리서치의 기반이 됩니다.)"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"></textarea>
+                    </div>
+
+                    <button type="submit" id="generateBtn"
+                        class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-md text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:bg-blue-400" disabled>
+                        <span id="buttonText">사업 계획서 생성 시작</span>
+                        <div id="loadingSpinner" class="spinner ml-2 hidden"></div>
+                    </button>
+                </form>
             </div>
 
-            <!-- STEP 1: 기본 정보 -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">1</div>
-                    <div class="step-title">기본 정보</div>
+            <!-- 2. Output Area -->
+            <div class="lg:col-span-2">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">📄 생성된 사업 계획서 초안</h2>
+                    <button id="downloadPdfBtn"
+                        class="py-2 px-4 bg-green-500 text-white font-medium rounded-lg shadow-md hover:bg-green-600 transition duration-150 ease-in-out disabled:bg-green-300"
+                        disabled>
+                        PDF로 저장
+                    </button>
                 </div>
                 
-                <div class="form-group">
-                    <label for="teamName">팀/부서명 <span class="required">*</span></label>
-                    <input type="text" id="teamName" placeholder="예: 기술혁신팀">
+                <div id="reportOutput" class="prose max-w-none">
+                    <!-- Initial message set by JavaScript -->
+                    <p class="text-gray-600 font-bold">🎉 모든 준비가 완료되었습니다! 필요한 정보를 입력하고 '사업 계획서 생성 시작' 버튼을 눌러주세요.</p>
                 </div>
-
-                <div class="form-group">
-                    <label for="managerName">팀장/담당자명 <span class="required">*</span></label>
-                    <input type="text" id="managerName" placeholder="예: 홍길동">
-                </div>
-
-                <div class="form-group">
-                    <label for="planYear">사업 연도</label>
-                    <input type="text" id="planYear" placeholder="예: 2026" value="2026">
-                </div>
-            </div>
-
-            <!-- STEP 2: 사업 유형 -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">2</div>
-                    <div class="step-title">사업 유형</div>
-                </div>
-
-                <div class="radio-group">
-                    <label class="radio-option">
-                        <input type="radio" name="businessType" value="신규 사업" checked>
-                        <span><strong>신규 사업</strong> - 완전히 새로운 사업 추진</span>
-                    </label>
-                    <label class="radio-option">
-                        <input type="radio" name="businessType" value="기존 사업 확대">
-                        <span><strong>기존 사업 확대</strong> - 기존 사업의 규모/범위 확장</span>
-                    </label>
-                    <label class="radio-option">
-                        <input type="radio" name="businessType" value="프로세스 개선">
-                        <span><strong>프로세스 개선</strong> - 업무 효율화 및 개선</span>
-                    </label>
-                    <label class="radio-option">
-                        <input type="radio" name="businessType" value="기술 혁신">
-                        <span><strong>기술 혁신</strong> - 신기술 도입 및 R&D</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- STEP 3: 사업 내용 -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">3</div>
-                    <div class="step-title">사업 내용</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="businessSummary">사업 개요 <span class="required">*</span></label>
-                    <textarea id="businessSummary" placeholder="이 사업이 무엇인지 2-3문장으로 요약해주세요"></textarea>
-                    <div class="help-text">예: "AI 기반 품질 검사 시스템을 도입하여 불량률을 50% 감소시키고 생산성을 향상시키는 프로젝트"</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="businessBackground">추진 배경 <span class="required">*</span></label>
-                    <textarea id="businessBackground" placeholder="왜 이 사업을 추진하게 되었나요?"></textarea>
-                    <div class="help-text">현재 문제점, 시장 변화, 경쟁사 동향 등을 포함해주세요</div>
-                </div>
-            </div>
-
-            <!-- STEP 4: 목표 및 과제 -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">4</div>
-                    <div class="step-title">목표 및 주요 과제</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="mainGoal">주요 목표 <span class="required">*</span></label>
-                    <input type="text" id="mainGoal" placeholder="예: 불량률 50% 감소, 매출 30% 증대">
-                </div>
-
-                <div class="form-group">
-                    <label for="subGoals">세부 목표 <span class="required">*</span></label>
-                    <textarea id="subGoals" placeholder="목표를 구체적으로 나열해주세요 (줄바꿈으로 구분)"></textarea>
-                    <div class="help-text">예:<br>- 1분기: 시스템 설계 및 도입<br>- 2분기: 테스트 운영<br>- 3분기: 전면 확대</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="keyTasks">핵심 추진 과제 <span class="required">*</span></label>
-                    <textarea id="keyTasks" placeholder="무엇을 실행할 것인가요?"></textarea>
-                    <div class="help-text">구체적인 실행 항목들을 나열해주세요</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="expectedEffects">기대 효과 <span class="required">*</span></label>
-                    <textarea id="expectedEffects" placeholder="이 사업의 성과는 무엇인가요?"></textarea>
-                    <div class="help-text">정량적/정성적 효과를 모두 포함해주세요</div>
-                </div>
-            </div>
-
-            <!-- STEP 5: 시장 정보 -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">5</div>
-                    <div class="step-title">시장 및 산업 정보</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="industry">산업 분야 <span class="required">*</span></label>
-                    <input type="text" id="industry" placeholder="예: 제조업, IT, 헬스케어, 유통">
-                </div>
-
-                <div class="form-group">
-                    <label for="marketKeywords">시장 키워드 <span class="required">*</span></label>
-                    <input type="text" id="marketKeywords" placeholder="예: AI, 자동화, 클라우드, 디지털 전환">
-                    <div class="help-text">AI가 시장 분석에 사용할 키워드를 쉼표로 구분하여 입력</div>
-                </div>
-            </div>
-
-            <!-- STEP 6: 추가 정보 (선택) -->
-            <div class="step">
-                <div class="step-header">
-                    <div class="step-number">6</div>
-                    <div class="step-title">추가 정보 (선택사항)</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="budget">예상 예산</label>
-                    <input type="text" id="budget" placeholder="예: 5억원, 미정">
-                </div>
-
-                <div class="form-group">
-                    <label for="timeline">추진 일정</label>
-                    <input type="text" id="timeline" placeholder="예: 2026년 1월~12월" value="2026년 1월~12월">
-                </div>
-            </div>
-
-            <div class="button-group">
-                <button class="btn btn-secondary" onclick="resetForm()">초기화</button>
-                <button class="btn btn-primary" onclick="generatePlan()">🚀 사업계획서 생성하기</button>
-            </div>
-        </div>
-
-        <!-- 로딩 섹션 -->
-        <div id="loadingSection" class="content loading">
-            <div class="spinner"></div>
-            <div class="loading-text">AI가 사업계획서를 작성하고 있습니다...</div>
-            <div class="loading-detail" id="loadingDetail">초기화 중...</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-        </div>
-
-        <!-- 결과 섹션 -->
-        <div id="resultSection" class="content result">
-            <h2 style="color: #1a5490; margin-bottom: 20px;">📄 생성된 사업계획서</h2>
-            <div id="resultContent" class="result-content"></div>
-            <div class="result-actions">
-                <button class="btn btn-secondary" onclick="location.reload()">새로 작성하기</button>
-                <button class="btn btn-primary" onclick="copyToClipboard()">📋 복사하기</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // API 엔드포인트 설정
-        const API_BASE_URL = 'http://localhost:3000/api';
+    <script type="module">
+        // Global variables for API Key
+        // API Key is now retrieved from the environment variable (if provided), allowing the developer to pay.
+        let API_KEY = (typeof __api_key !== 'undefined') ? __api_key : "";
+        const API_BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=`;
+        const MAX_RETRIES = 5;
+        
+        const form = document.getElementById('planForm');
+        const reportOutput = document.getElementById('reportOutput');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // 라디오 버튼 선택 효과
-        document.querySelectorAll('.radio-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.radio-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                this.querySelector('input[type="radio"]').checked = true;
-            });
-        });
-
-        function resetForm() {
-            if (confirm('입력한 내용이 모두 삭제됩니다. 계속하시겠습니까?')) {
-                document.querySelectorAll('input[type="text"], textarea').forEach(input => {
-                    input.value = '';
-                });
-                document.getElementById('planYear').value = '2026';
-                document.getElementById('timeline').value = '2026년 1월~12월';
-                document.querySelector('input[name="businessType"]').checked = true;
+        // Initial setup for the app state
+        function initializeApp() {
+            if (API_KEY) {
+                // Key is present (provided by the environment) -> Enable button and show ready message
+                generateBtn.disabled = false;
+                reportOutput.innerHTML = `<p class="text-gray-600 font-bold">🎉 모든 준비가 완료되었습니다! 필요한 정보를 입력하고 '사업 계획서 생성 시작' 버튼을 눌러주세요.</p>`;
+            } else {
+                // Key is missing in the environment -> Disable button and show error
+                generateBtn.disabled = true;
+                reportOutput.innerHTML = `<p class="text-red-500 font-bold">⚠️ API 키가 환경에 설정되지 않았습니다. 개발자에게 문의하세요.</p>`;
             }
         }
 
-        async function generatePlan() {
-            // 입력 검증
-            const apiKey = document.getElementById('apiKey').value.trim();
-            const teamName = document.getElementById('teamName').value.trim();
-            const managerName = document.getElementById('managerName').value.trim();
-            const businessSummary = document.getElementById('businessSummary').value.trim();
-            const businessBackground = document.getElementById('businessBackground').value.trim();
-            const mainGoal = document.getElementById('mainGoal').value.trim();
-            const subGoals = document.getElementById('subGoals').value.trim();
-            const keyTasks = document.getElementById('keyTasks').value.trim();
-            const expectedEffects = document.getElementById('expectedEffects').value.trim();
-            const industry = document.getElementById('industry').value.trim();
-            const marketKeywords = document.getElementById('marketKeywords').value.trim();
+        // Initialize on load
+        initializeApp();
 
-            if (!teamName || !managerName || !businessSummary || !businessBackground || 
-                !mainGoal || !subGoals || !keyTasks || !expectedEffects || 
-                !industry || !marketKeywords) {
-                alert('필수 항목(*)을 모두 입력해주세요.');
+        // --- Core API Logic (Using global API_KEY) ---
+
+        const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        const renderMarkdown = (markdownText) => {
+            return marked.parse(markdownText);
+        };
+
+        async function fetchWithRetry(payload) {
+            if (!API_KEY) {
+                reportOutput.innerHTML = '<p class="text-red-600 font-bold">❌ API 키가 설정되지 않아 생성을 시작할 수 없습니다. 개발자에게 문의하세요.</p>';
+                return null;
+            }
+
+            const apiUrl = API_BASE_URL + API_KEY;
+
+            for (let i = 0; i < MAX_RETRIES; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        return await response.json();
+                    } else if (response.status === 401) {
+                         // Unauthorized - likely bad key
+                        reportOutput.innerHTML = `<p class="text-red-600">오류 발생: API 키가 유효하지 않거나 만료되었습니다. 개발자에게 문의하세요. (상태 코드: ${response.status})</p>`;
+                        return null;
+                    } else if (response.status === 429 || response.status >= 500) {
+                        // Rate limit or server error: retry
+                        const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000);
+                        console.warn(`[API] Retrying after error ${response.status}. Waiting for ${Math.round(delay / 1000)}s...`);
+                        await wait(delay);
+                    } else {
+                        // Non-retryable error
+                        const errorBody = await response.json();
+                        console.error("[API] Fatal error, not retrying:", errorBody);
+                        reportOutput.innerHTML = `<p class="text-red-600">오류 발생: API 요청에 실패했습니다. (상태 코드: ${response.status})</p>`;
+                        return null;
+                    }
+                } catch (error) {
+                    console.error("[API] Network error:", error);
+                    if (i < MAX_RETRIES - 1) {
+                        const delay = Math.pow(2, i) * 1000 + (Math.random() * 1000);
+                        console.warn(`[API] Retrying after network error. Waiting for ${Math.round(delay / 1000)}s...`);
+                        await wait(delay);
+                    } else {
+                        reportOutput.innerHTML = `<p class="text-red-600">오류 발생: 네트워크 연결 또는 API 호출에 실패했습니다. 잠시 후 다시 시도해 주세요.</p>`;
+                        return null;
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        async function generateBusinessPlan(event) {
+            event.preventDefault();
+            
+            if (!API_KEY) {
+                alert("API 키가 설정되지 않아 생성을 시작할 수 없습니다. 개발자에게 문의하세요.");
                 return;
             }
 
-            // 데이터 수집
-            const userData = {
-                team_name: teamName,
-                manager_name: managerName,
-                plan_year: document.getElementById('planYear').value.trim() || '2026',
-                business_type: document.querySelector('input[name="businessType"]:checked').value,
-                business_summary: businessSummary,
-                business_background: businessBackground,
-                main_goal: mainGoal,
-                sub_goals: subGoals,
-                key_tasks: keyTasks,
-                expected_effects: expectedEffects,
-                industry: industry,
-                market_keywords: marketKeywords,
-                budget: document.getElementById('budget').value.trim() || '미정',
-                timeline: document.getElementById('timeline').value.trim() || '2026년 1월~12월'
+            // 1. Gather Input Data
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            // 2. Prepare UI for generation
+            reportOutput.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-blue-600">
+                <div class="spinner border-blue-600 border-t-blue-300 w-8 h-8"></div>
+                <p class="mt-4 font-semibold text-lg">사업 계획서를 심층 리서치 중입니다...</p>
+                <p class="text-sm text-gray-500 mt-1">최대 30초 정도 소요될 수 있습니다. 잠시만 기다려주세요.</p>
+            </div>`;
+            generateBtn.disabled = true;
+            downloadPdfBtn.disabled = true;
+            buttonText.textContent = "생성 중...";
+            loadingSpinner.classList.remove('hidden');
+
+            // 3. Construct System Instruction and User Query (Korean prompts for high-quality response)
+            const systemInstruction = {
+                parts: [{
+                    text: `당신은 세계적인 수준의 전문 비즈니스 컨설턴트 및 금융 분석가입니다.
+                    사용자가 제공한 정보를 바탕으로 다음과 같은 목차와 내용을 포함하는 A4 2페이지 분량의 상세하고 전문적인 사업 계획서(Business Plan) 초안을 작성하십시오.
+                    
+                    **[보고서 작성 가이드라인]**
+                    1.  **언어:** 전체 보고서는 한국어로 작성하십시오.
+                    2.  **포맷:** Markdown 형식으로 작성하며, 문법 오류가 없도록 명확하게 구성하십시오.
+                    3.  **심층 리서치:** Google Search grounding tool을 사용하여 최신 시장 동향, 통계, 경쟁사 정보 등 객관적인 근거 자료를 반드시 포함하여 보고서의 깊이와 신뢰도를 높이십시오.
+                    4.  **목차:** 보고서에는 다음 목차를 포함하십시오.
+                        -   # 사업 계획서: [핵심 사업 아이디어 제목] (보고서 최상단 제목)
+                        -   ## 1. 사업 개요 및 배경
+                        -   ## 2. 시장 분석 및 타당성 (리서치 근거 필수)
+                        -   ## 3. 제품/서비스 상세 기획
+                        -   ## 4. 실행 전략 및 마일스톤
+                        -   ## 5. 재무 예측 및 기대 효과 (구체적인 수치 제시 노력)
+                        -   ## 6. 결론 및 제언
+                    
+                    **[사용자 입력 정보]**
+                    사업 계획서 종류: ${data.planType}
+                    팀/프로젝트 이름: ${data.teamName}
+                    전체 목표 및 비전: ${data.goal}
+                    계획 기간: ${data.period}
+                    주요 과제 및 핵심 마일스톤: ${data.tasks}
+                    기대 효과: ${data.expectedEffects}
+                    핵심 사업 아이디어 및 상세 설명: ${data.businessIdea}
+
+                    **[최종 지시]** 이 모든 정보를 기반으로 사용자에게 제출할 완벽한 초안 보고서를 작성하십시오. 모든 섹션은 내용이 풍부하고 전문적이어야 합니다.`
+                }]
             };
 
-            // UI 전환
-            document.getElementById('formSection').style.display = 'none';
-            document.getElementById('loadingSection').classList.add('active');
+            const userQuery = `위의 시스템 지침과 사용자 입력 정보를 바탕으로, [${data.teamName}]의 '핵심 사업 아이디어: ${data.businessIdea}'에 대한 상세하고 심층적인 사업 계획서 초안을 작성하고 관련 근거 자료를 반영하십시오.`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: systemInstruction,
+            };
 
-            try {
-                // 프로그레스 바 애니메이션
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 1;
-                    if (progress <= 90) {
-                        document.getElementById('progressFill').style.width = progress + '%';
+            // 4. Call API with retry logic
+            const result = await fetchWithRetry(payload);
+
+            // 5. Process and Display Result
+            if (result && result.candidates && result.candidates.length > 0) {
+                const candidate = result.candidates[0];
+                const generatedText = candidate.content?.parts?.[0]?.text || "보고서 생성에 실패했습니다.";
+                
+                // Convert Markdown to HTML
+                let htmlContent = renderMarkdown(generatedText);
+
+                // Extract and format citations (sources)
+                const groundingMetadata = candidate.groundingMetadata;
+                let sourcesHtml = '';
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    const sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({
+                            uri: attribution.web?.uri,
+                            title: attribution.web?.title,
+                        }))
+                        .filter(source => source.uri && source.title); // Only include sources with URI and Title
+
+                    if (sources.length > 0) {
+                        const uniqueSources = Array.from(new Set(sources.map(s => s.uri)))
+                            .map(uri => sources.find(s => s.uri === uri));
+
+                        sourcesHtml = `<div class="citation">
+                            <h3 class="font-bold text-sm text-gray-700 mb-2 mt-4">심층 리서치 참고 자료 (근거)</h3>
+                            <ul class="list-disc list-inside space-y-1 text-xs">`;
+                        
+                        uniqueSources.forEach((source, index) => {
+                            sourcesHtml += `<li><a href="${source.uri}" target="_blank" class="text-blue-500 hover:underline">${source.title || source.uri}</a></li>`;
+                        });
+                        
+                        sourcesHtml += `</ul></div>`;
                     }
-                }, 200);
-
-                // 1단계: 심층 리서치
-                document.getElementById('loadingDetail').textContent = '1단계: 시장 환경 및 SWOT 분석 중...';
-                const researchData = await performResearch(userData);
-
-                // 2단계: 사업계획서 생성
-                document.getElementById('loadingDetail').textContent = '2단계: 상세 사업계획서 작성 중...';
-                document.getElementById('progressFill').style.width = '60%';
-                const businessPlan = await generateBusinessPlan(userData, researchData);
-
-                // 완료
-                clearInterval(progressInterval);
-                document.getElementById('progressFill').style.width = '100%';
-
-                // 결과 표시
-                setTimeout(() => {
-                    showResult(businessPlan, userData);
-                }, 500);
-
-            } catch (error) {
-                clearInterval(progressInterval);
-                document.getElementById('loadingSection').classList.remove('active');
-                document.getElementById('formSection').style.display = 'block';
-                
-                let errorMessage = '사업계획서 생성 중 오류가 발생했습니다.';
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
                 }
-                
-                alert(errorMessage + '\n\n상세 오류: ' + error.message);
-            }
-        }
 
-        async function performResearch(userData) {
-            const response = await fetch(`${API_BASE_URL}/research`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
+                // Update output area
+                reportOutput.innerHTML = htmlContent + sourcesHtml;
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || '리서치 API 호출 실패');
+                // Enable PDF download
+                downloadPdfBtn.disabled = false;
+
+            } else if (result !== null) {
+                reportOutput.innerHTML = `<p class="text-red-600">보고서를 가져오는 데 문제가 발생했습니다. API 응답이 유효하지 않습니다.</p>`;
             }
 
-            const data = await response.json();
-            return data.data;
+            // 6. Reset UI
+            generateBtn.disabled = false;
+            buttonText.textContent = "사업 계획서 생성 시작";
+            loadingSpinner.classList.add('hidden');
         }
 
-        async function generateBusinessPlan(userData, researchData) {
-            const response = await fetch(`${API_BASE_URL}/generate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userData, researchData })
-            });
+        /**
+         * Converts the generated report HTML into a PDF and downloads it.
+         */
+        function downloadPdf() {
+             const teamName = document.getElementById('teamName').value || '미정';
+             const date = new Date().toISOString().slice(0, 10);
+             const fileName = `사업계획서_${teamName}_${date}.pdf`;
+             const reportOutputContent = document.getElementById('reportOutput').innerHTML;
+             
+             // 1. Create a temporary element to hold the content for PDF conversion
+             const pdfContent = document.createElement('div');
+             pdfContent.innerHTML = reportOutputContent;
+             pdfContent.style.width = '210mm'; 
+             pdfContent.style.padding = '10mm';
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || '사업계획서 생성 API 호출 실패');
-            }
+             document.body.appendChild(pdfContent);
 
-            const data = await response.json();
-            return data.data;
+             // 2. Start the PDF generation
+             const config = {
+                margin: 10,
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, logging: false, dpi: 192, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+             html2pdf().from(pdfContent).set(config).save().finally(() => {
+                 // 3. Clean up the temporary element
+                 document.body.removeChild(pdfContent);
+             });
         }
 
-        function showResult(businessPlan, userData) {
-            document.getElementById('loadingSection').classList.remove('active');
-            
-            // 마크다운을 HTML로 간단 변환
-            let htmlContent = businessPlan
-                .replace(/### (.*)/g, '<h3 style="color: #2c5aa0; margin-top: 25px; margin-bottom: 15px;">$1</h3>')
-                .replace(/## (.*)/g, '<h2 style="color: #1a5490; margin-top: 30px; margin-bottom: 20px;">$1</h2>')
-                .replace(/# (.*)/g, '<h1 style="color: #1a5490; margin-top: 35px; margin-bottom: 25px;">$1</h1>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/- (.*)/g, '<li>$1</li>')
-                .replace(/\n\n/g, '</p><p style="line-height: 1.8; margin-bottom: 15px;">')
-                .replace(/\n/g, '<br>');
-
-            htmlContent = '<p style="line-height: 1.8; margin-bottom: 15px;">' + htmlContent + '</p>';
-
-            // 기본 정보 추가
-            const infoSection = `
-                <div style="background: #f0f3ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
-                    <h2 style="color: #1a5490; margin-bottom: 15px;">📋 기본 정보</h2>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>팀/부서:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.team_name}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>팀장:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.manager_name}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>사업 연도:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.plan_year}</td></tr>
-                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>사업 유형:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.business_type}</td></tr>
-                        <tr><td style="padding: 8px;"><strong>작성일:</strong></td><td style="padding: 8px;">${new Date().toLocaleDateString('ko-KR')}</td></tr>
-                    </table>
-                </div>
-            `;
-
-            document.getElementById('resultContent').innerHTML = infoSection + htmlContent;
-            document.getElementById('resultSection').classList.add('active');
-            
-            // 저장용 전역 변수
-            window.generatedPlan = infoSection + htmlContent;
-            window.generatedText = businessPlan;
-
-            window.scrollTo(0, 0);
-        }
-
-        function copyToClipboard() {
-            const textContent = window.generatedText || document.getElementById('resultContent').innerText;
-            
-            navigator.clipboard.writeText(textContent).then(() => {
-                alert('✅ 사업계획서가 클립보드에 복사되었습니다!\n\nWord나 Google Docs에 붙여넣기(Ctrl+V)하여 사용하세요.');
-            }).catch(err => {
-                // 폴백: 텍스트 영역 생성하여 복사
-                const textarea = document.createElement('textarea');
-                textarea.value = textContent;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('✅ 사업계획서가 클립보드에 복사되었습니다!\n\nWord나 Google Docs에 붙여넣기(Ctrl+V)하여 사용하세요.');
-            });
-        }
+        // Event Listeners
+        form.addEventListener('submit', generateBusinessPlan);
+        downloadPdfBtn.addEventListener('click', downloadPdf);
+        
     </script>
 </body>
 </html>
