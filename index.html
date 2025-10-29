@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선일다이파스 2026 사업계획서 자동생성기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a5490 0%, #2c5aa0 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 15px;
+        }
+
+        .step-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        label .required {
+            color: #e74c3c;
+            margin-left: 5px;
+        }
+
+        .help-text {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .radio-option.selected {
+            background: #f0f3ff;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .loading-detail {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .result {
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .result-content {
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #1976D2;
+        }
+
+        @media (max-width: 768px) {
+            .button-group,
+            .result-actions {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .step {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ 선일다이파스 2026 사업계획서 자동생성기</h1>
+            <p>AI가 전문 컨설턴트 수준의 사업계획서를 자동으로 작성해드립니다</p>
+        </div>
+
+        <!-- 폼 섹션 -->
+        <div id="formSection" class="content">
+            <div class="info-box">
+                <p><strong>🎉 이제 API 키 없이 바로 사용하실 수 있습니다!</strong></p>
+                <p>모든 API 비용은 서비스에서 부담합니다.</p>
+            </div>
+
+            <!-- STEP 1: 기본 정보 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">기본 정보</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="teamName">팀/부서명 <span class="required">*</span></label>
+                    <input type="text" id="teamName" placeholder="예: 기술혁신팀">
+                </div>
+
+                <div class="form-group">
+                    <label for="managerName">팀장/담당자명 <span class="required">*</span></label>
+                    <input type="text" id="managerName" placeholder="예: 홍길동">
+                </div>
+
+                <div class="form-group">
+                    <label for="planYear">사업 연도</label>
+                    <input type="text" id="planYear" placeholder="예: 2026" value="2026">
+                </div>
+            </div>
+
+            <!-- STEP 2: 사업 유형 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">사업 유형</div>
+                </div>
+
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="businessType" value="신규 사업" checked>
+                        <span><strong>신규 사업</strong> - 완전히 새로운 사업 추진</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="businessType" value="기존 사업 확대">
+                        <span><strong>기존 사업 확대</strong> - 기존 사업의 규모/범위 확장</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="businessType" value="프로세스 개선">
+                        <span><strong>프로세스 개선</strong> - 업무 효율화 및 개선</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="businessType" value="기술 혁신">
+                        <span><strong>기술 혁신</strong> - 신기술 도입 및 R&D</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- STEP 3: 사업 내용 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">사업 내용</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessSummary">사업 개요 <span class="required">*</span></label>
+                    <textarea id="businessSummary" placeholder="이 사업이 무엇인지 2-3문장으로 요약해주세요"></textarea>
+                    <div class="help-text">예: "AI 기반 품질 검사 시스템을 도입하여 불량률을 50% 감소시키고 생산성을 향상시키는 프로젝트"</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="businessBackground">추진 배경 <span class="required">*</span></label>
+                    <textarea id="businessBackground" placeholder="왜 이 사업을 추진하게 되었나요?"></textarea>
+                    <div class="help-text">현재 문제점, 시장 변화, 경쟁사 동향 등을 포함해주세요</div>
+                </div>
+            </div>
+
+            <!-- STEP 4: 목표 및 과제 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">목표 및 주요 과제</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mainGoal">주요 목표 <span class="required">*</span></label>
+                    <input type="text" id="mainGoal" placeholder="예: 불량률 50% 감소, 매출 30% 증대">
+                </div>
+
+                <div class="form-group">
+                    <label for="subGoals">세부 목표 <span class="required">*</span></label>
+                    <textarea id="subGoals" placeholder="목표를 구체적으로 나열해주세요 (줄바꿈으로 구분)"></textarea>
+                    <div class="help-text">예:<br>- 1분기: 시스템 설계 및 도입<br>- 2분기: 테스트 운영<br>- 3분기: 전면 확대</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="keyTasks">핵심 추진 과제 <span class="required">*</span></label>
+                    <textarea id="keyTasks" placeholder="무엇을 실행할 것인가요?"></textarea>
+                    <div class="help-text">구체적인 실행 항목들을 나열해주세요</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="expectedEffects">기대 효과 <span class="required">*</span></label>
+                    <textarea id="expectedEffects" placeholder="이 사업의 성과는 무엇인가요?"></textarea>
+                    <div class="help-text">정량적/정성적 효과를 모두 포함해주세요</div>
+                </div>
+            </div>
+
+            <!-- STEP 5: 시장 정보 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div class="step-title">시장 및 산업 정보</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="industry">산업 분야 <span class="required">*</span></label>
+                    <input type="text" id="industry" placeholder="예: 제조업, IT, 헬스케어, 유통">
+                </div>
+
+                <div class="form-group">
+                    <label for="marketKeywords">시장 키워드 <span class="required">*</span></label>
+                    <input type="text" id="marketKeywords" placeholder="예: AI, 자동화, 클라우드, 디지털 전환">
+                    <div class="help-text">AI가 시장 분석에 사용할 키워드를 쉼표로 구분하여 입력</div>
+                </div>
+            </div>
+
+            <!-- STEP 6: 추가 정보 (선택) -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">6</div>
+                    <div class="step-title">추가 정보 (선택사항)</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="budget">예상 예산</label>
+                    <input type="text" id="budget" placeholder="예: 5억원, 미정">
+                </div>
+
+                <div class="form-group">
+                    <label for="timeline">추진 일정</label>
+                    <input type="text" id="timeline" placeholder="예: 2026년 1월~12월" value="2026년 1월~12월">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="resetForm()">초기화</button>
+                <button class="btn btn-primary" onclick="generatePlan()">🚀 사업계획서 생성하기</button>
+            </div>
+        </div>
+
+        <!-- 로딩 섹션 -->
+        <div id="loadingSection" class="content loading">
+            <div class="spinner"></div>
+            <div class="loading-text">AI가 사업계획서를 작성하고 있습니다...</div>
+            <div class="loading-detail" id="loadingDetail">초기화 중...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- 결과 섹션 -->
+        <div id="resultSection" class="content result">
+            <h2 style="color: #1a5490; margin-bottom: 20px;">📄 생성된 사업계획서</h2>
+            <div id="resultContent" class="result-content"></div>
+            <div class="result-actions">
+                <button class="btn btn-secondary" onclick="location.reload()">새로 작성하기</button>
+                <button class="btn btn-primary" onclick="copyToClipboard()">📋 복사하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API 엔드포인트 설정
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        // 라디오 버튼 선택 효과
+        document.querySelectorAll('.radio-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.radio-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        function resetForm() {
+            if (confirm('입력한 내용이 모두 삭제됩니다. 계속하시겠습니까?')) {
+                document.querySelectorAll('input[type="text"], textarea').forEach(input => {
+                    input.value = '';
+                });
+                document.getElementById('planYear').value = '2026';
+                document.getElementById('timeline').value = '2026년 1월~12월';
+                document.querySelector('input[name="businessType"]').checked = true;
+            }
+        }
+
+        async function generatePlan() {
+            // 입력 검증
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const teamName = document.getElementById('teamName').value.trim();
+            const managerName = document.getElementById('managerName').value.trim();
+            const businessSummary = document.getElementById('businessSummary').value.trim();
+            const businessBackground = document.getElementById('businessBackground').value.trim();
+            const mainGoal = document.getElementById('mainGoal').value.trim();
+            const subGoals = document.getElementById('subGoals').value.trim();
+            const keyTasks = document.getElementById('keyTasks').value.trim();
+            const expectedEffects = document.getElementById('expectedEffects').value.trim();
+            const industry = document.getElementById('industry').value.trim();
+            const marketKeywords = document.getElementById('marketKeywords').value.trim();
+
+            if (!teamName || !managerName || !businessSummary || !businessBackground || 
+                !mainGoal || !subGoals || !keyTasks || !expectedEffects || 
+                !industry || !marketKeywords) {
+                alert('필수 항목(*)을 모두 입력해주세요.');
+                return;
+            }
+
+            // 데이터 수집
+            const userData = {
+                team_name: teamName,
+                manager_name: managerName,
+                plan_year: document.getElementById('planYear').value.trim() || '2026',
+                business_type: document.querySelector('input[name="businessType"]:checked').value,
+                business_summary: businessSummary,
+                business_background: businessBackground,
+                main_goal: mainGoal,
+                sub_goals: subGoals,
+                key_tasks: keyTasks,
+                expected_effects: expectedEffects,
+                industry: industry,
+                market_keywords: marketKeywords,
+                budget: document.getElementById('budget').value.trim() || '미정',
+                timeline: document.getElementById('timeline').value.trim() || '2026년 1월~12월'
+            };
+
+            // UI 전환
+            document.getElementById('formSection').style.display = 'none';
+            document.getElementById('loadingSection').classList.add('active');
+
+            try {
+                // 프로그레스 바 애니메이션
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 1;
+                    if (progress <= 90) {
+                        document.getElementById('progressFill').style.width = progress + '%';
+                    }
+                }, 200);
+
+                // 1단계: 심층 리서치
+                document.getElementById('loadingDetail').textContent = '1단계: 시장 환경 및 SWOT 분석 중...';
+                const researchData = await performResearch(userData);
+
+                // 2단계: 사업계획서 생성
+                document.getElementById('loadingDetail').textContent = '2단계: 상세 사업계획서 작성 중...';
+                document.getElementById('progressFill').style.width = '60%';
+                const businessPlan = await generateBusinessPlan(userData, researchData);
+
+                // 완료
+                clearInterval(progressInterval);
+                document.getElementById('progressFill').style.width = '100%';
+
+                // 결과 표시
+                setTimeout(() => {
+                    showResult(businessPlan, userData);
+                }, 500);
+
+            } catch (error) {
+                clearInterval(progressInterval);
+                document.getElementById('loadingSection').classList.remove('active');
+                document.getElementById('formSection').style.display = 'block';
+                
+                let errorMessage = '사업계획서 생성 중 오류가 발생했습니다.';
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = '서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
+                }
+                
+                alert(errorMessage + '\n\n상세 오류: ' + error.message);
+            }
+        }
+
+        async function performResearch(userData) {
+            const response = await fetch(`${API_BASE_URL}/research`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || '리서치 API 호출 실패');
+            }
+
+            const data = await response.json();
+            return data.data;
+        }
+
+        async function generateBusinessPlan(userData, researchData) {
+            const response = await fetch(`${API_BASE_URL}/generate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userData, researchData })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || '사업계획서 생성 API 호출 실패');
+            }
+
+            const data = await response.json();
+            return data.data;
+        }
+
+        function showResult(businessPlan, userData) {
+            document.getElementById('loadingSection').classList.remove('active');
+            
+            // 마크다운을 HTML로 간단 변환
+            let htmlContent = businessPlan
+                .replace(/### (.*)/g, '<h3 style="color: #2c5aa0; margin-top: 25px; margin-bottom: 15px;">$1</h3>')
+                .replace(/## (.*)/g, '<h2 style="color: #1a5490; margin-top: 30px; margin-bottom: 20px;">$1</h2>')
+                .replace(/# (.*)/g, '<h1 style="color: #1a5490; margin-top: 35px; margin-bottom: 25px;">$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/- (.*)/g, '<li>$1</li>')
+                .replace(/\n\n/g, '</p><p style="line-height: 1.8; margin-bottom: 15px;">')
+                .replace(/\n/g, '<br>');
+
+            htmlContent = '<p style="line-height: 1.8; margin-bottom: 15px;">' + htmlContent + '</p>';
+
+            // 기본 정보 추가
+            const infoSection = `
+                <div style="background: #f0f3ff; padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                    <h2 style="color: #1a5490; margin-bottom: 15px;">📋 기본 정보</h2>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>팀/부서:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.team_name}</td></tr>
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>팀장:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.manager_name}</td></tr>
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>사업 연도:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.plan_year}</td></tr>
+                        <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>사업 유형:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userData.business_type}</td></tr>
+                        <tr><td style="padding: 8px;"><strong>작성일:</strong></td><td style="padding: 8px;">${new Date().toLocaleDateString('ko-KR')}</td></tr>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('resultContent').innerHTML = infoSection + htmlContent;
+            document.getElementById('resultSection').classList.add('active');
+            
+            // 저장용 전역 변수
+            window.generatedPlan = infoSection + htmlContent;
+            window.generatedText = businessPlan;
+
+            window.scrollTo(0, 0);
+        }
+
+        function copyToClipboard() {
+            const textContent = window.generatedText || document.getElementById('resultContent').innerText;
+            
+            navigator.clipboard.writeText(textContent).then(() => {
+                alert('✅ 사업계획서가 클립보드에 복사되었습니다!\n\nWord나 Google Docs에 붙여넣기(Ctrl+V)하여 사용하세요.');
+            }).catch(err => {
+                // 폴백: 텍스트 영역 생성하여 복사
+                const textarea = document.createElement('textarea');
+                textarea.value = textContent;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('✅ 사업계획서가 클립보드에 복사되었습니다!\n\nWord나 Google Docs에 붙여넣기(Ctrl+V)하여 사용하세요.');
+            });
+        }
+    </script>
+</body>
+</html>
